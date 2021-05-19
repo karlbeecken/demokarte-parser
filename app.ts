@@ -1,7 +1,12 @@
 import axios from "axios";
+import fs from "fs";
 
 axios.defaults.headers.common["charset"] = "iso-8859-1";
 axios.defaults.headers.common["User-Agent"] = "demokarte.live parser v1.0";
+
+var mapFile = fs.createWriteStream("mapdata.js", {
+  flags: "a", // 'a' means appending (old data will be preserved)
+});
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,9 +18,8 @@ axios
   )
   .then(async (res) => {
     for (let i = 0; i < res.data.index.length; i++) {
-      await delay(1000);
       const el = res.data.index[i];
-      console.log(el);
+      if (el.datum != "19.05.2021") continue;
       if (el.plz != "" && el.strasse_nr != "") {
         await axios
           .get(
@@ -28,11 +32,16 @@ axios
             )}`
           )
           .then((res) => {
-            console.log(res.data);
+            console.log(el.thema);
+            console.log(res.data[0].lat, res.data[0].lon);
+            let entry = `L.marker([${res.data[0].lat},${res.data[0].lon}]).addTo(map).bindPopup('<b>${el.thema}</b><br>${el.datum}, ${el.von} - ${el.bis}<br>${el.strasse_nr}, ${el.plz} Berlin');
+`;
+            mapFile.write(entry);
           })
           .catch((error) => {
             console.error(error);
           });
       }
+      await delay(1000);
     }
   });
