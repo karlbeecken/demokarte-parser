@@ -1,5 +1,6 @@
 import axios from "axios";
 import fs from "fs";
+import { DateTime } from "luxon";
 
 axios.defaults.headers.common["charset"] = "iso-8859-1";
 axios.defaults.headers.common["User-Agent"] = "demokarte.live parser v1.0";
@@ -16,14 +17,14 @@ axios
   .get(
     "https://www.berlin.de/polizei/service/versammlungsbehoerde/versammlungen-aufzuege/index.php/index/all.json?q="
   )
-  .then(async (res) => {
+  .then((res) => {
     for (let i = 0; i < res.data.index.length; i++) {
       const el = res.data.index[i];
-      if (el.datum != "19.05.2021") continue;
+      //if (el.datum != "01.06.2021") continue;
       if (el.plz != "" && el.strasse_nr != "") {
-        await axios
+        axios
           .get(
-            `https://nominatim.openstreetmap.org/search/?street=${encodeURIComponent(
+            `https://geo.fff.gay/search.php?street=${encodeURIComponent(
               el.strasse_nr
             )}&postalcode=${encodeURIComponent(
               el.plz
@@ -42,6 +43,5 @@ axios
             console.error(error);
           });
       }
-      await delay(1000);
     }
   });
